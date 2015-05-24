@@ -1,7 +1,7 @@
 package spotify_hack;
 
 import com.google.common.collect.ImmutableList;
-import spotify_hack.kdtree.MultiComparable;
+import kdtree.MultiComparable;
 
 /**
  * Created by jonathan on 5/23/15.

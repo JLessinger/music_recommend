@@ -5,3 +5,5 @@ target/
 *.eml
 *~
 .idea/
+kdtree/
+.DS_Store

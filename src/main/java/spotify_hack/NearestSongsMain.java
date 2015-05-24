@@ -1,7 +1,7 @@
 package spotify_hack;
 
 import com.google.common.collect.ImmutableList;
-import spotify_hack.kdtree.*;
+import kdtree.*;
 
 import java.io.*;
 import java.util.ArrayList;
