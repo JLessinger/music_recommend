@@ -1,0 +1,26 @@
+Reads the Million Song Dataset (or MillionSongSubset) into records containing ID, artist, album, song and pitches (chroma) 
+
+To run this test, you will have to download the Echonest Million Song Subset, available at:
+    http://labrosa.ee.columbia.edu/millionsong/pages/getting-dataset#subset
+which links directly to the file:
+    http://static.echonest.com/millionsongsubset_full.tar.gz
+Extract the tarball to a directory and set the root_path variable in the code
+to the data root directory.
+
+
+Stores songs with name, id and floating point coordinates in a KD-tree.
+Efficient nearest-neighbor search in n-dimensional Euclidean space
+
+Has been tested in Windows 7.
+
+Dependencies:
+  Python 2.7
+  h5py library
+
+How to use:
+  From your Python application, import the load_million_song.py module. Iterate over the song data by calling 
+  iterate_folder_songs_extracted(root_path, filename_re),
+  where root_path is the path to the data folder in the Million Song Dataset (or subset), and filename_re is 
+  a regular expression to identify a valid H5 datset, e.g., "^[A-Z]{7}[0-9,A-F]{11}\.h5$"
+  An example of a song data file name is TRBIJIA128F425F57D.h5
+
