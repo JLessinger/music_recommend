@@ -7,10 +7,6 @@ which links directly to the file:
 Extract the tarball to a directory and set the root_path variable in the code
 to the data root directory.
 
-
-Stores songs with name, id and floating point coordinates in a KD-tree.
-Efficient nearest-neighbor search in n-dimensional Euclidean space
-
 Has been tested in Windows 7.
 
 Dependencies:
