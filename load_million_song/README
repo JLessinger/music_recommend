@@ -1,4 +1,4 @@
-Reads the Million Song Dataset (or MillionSongSubset) into records containing ID, artist, album, song and pitches (chroma) 
+Reads the Million Song Dataset (or MillionSongSubset) into records containing ID, artist, album, song and pitches (chroma), and creates a database containing a feature of the topic probabilities of each type of chord for each song
 
 To run this test, you will have to download the Echonest Million Song Subset, available at:
     http://labrosa.ee.columbia.edu/millionsong/pages/getting-dataset#subset
@@ -9,6 +9,7 @@ to the data root directory.
 
 Has been tested in Windows 7.
 
+loadmillionsong.py:
 Dependencies:
   Python 2.7
   h5py library
@@ -19,4 +20,17 @@ How to use:
   where root_path is the path to the data folder in the Million Song Dataset (or subset), and filename_re is 
   a regular expression to identify a valid H5 datset, e.g., "^[A-Z]{7}[0-9,A-F]{11}\.h5$"
   An example of a song data file name is TRBIJIA128F425F57D.h5
+
+compute_features.py:
+Dependencies:
+  Python 2.7
+  numpy
+  scipy
+  pyechonest
+  pytables
+
+How to use:
+  From your Python application, import the compute_features.py module. 
+  Create the .csv database by calling compute_features.save_feature_database(root_path,csvpath), where root_path is the location of the “data” subfolder within the Million Song Subset and csvpath is where you want to create the feature database
+  
 

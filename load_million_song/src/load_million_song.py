@@ -1,11 +1,13 @@
 
 import os
 import h5py
+import hdf5_getters
+import beat_aligned_feats
 import re
 from time import time
 from collections import namedtuple
 
-song_record = namedtuple("song_record", "id  artist  album  title  pitches")
+song_record = namedtuple("song_record", "id  artist  title  pitches btchromas")
 
 def iterate_folder_songs(root_path, filename_re):
     """Iterate over a collection of HDF5 database files, each one containing
@@ -26,7 +28,8 @@ def iterate_folder_songs(root_path, filename_re):
 
             # Open an individual song file
             filepath = os.path.join(dirpath, filename)
-            with h5py.File(filepath, 'r') as song_file:
+            # with h5py.File(filepath, 'r') as song_file:
+            with hdf5_getters.open_h5_file_read(filepath) as song_file:
                 yield song_file
 
 def iterate_folder_songs_extracted(root_path, filename_re):
@@ -40,17 +43,23 @@ def iterate_folder_songs_extracted(root_path, filename_re):
     for song in iterate_folder_songs(root_path, filename_re):
         
         # Extract the important data from the full song record
-        metadata = song["metadata"]["songs"][0]
-        id = metadata[17]
-        artist = metadata[9]
-        album = metadata[14]
-        title = metadata[18]
+        #metadata = song["metadata"]["songs"][0]
+        #id = metadata[17]
+        #artist = metadata[9]
+        #album = metadata[14]
+        #title = metadata[18]
+        
+        id = hdf5_getters.get_track_id(song)
+        artist = hdf5_getters.get_artist_name(song)
+        title = hdf5_getters.get_title(song)
+        pitches = hdf5_getters.get_segments_pitches(song)
+        btchromas = beat_aligned_feats.get_btchromas(song)
 
-        analysis = song["analysis"]
-        pitches = analysis["segments_pitches"]
+        #analysis = song["analysis"]
+        #pitches = analysis["segments_pitches"]
 
         # Combine into a song record
-        song_rec = song_record(id, artist, album, title, pitches)
+        song_rec = song_record(id, artist, title, pitches, btchromas)
         yield song_rec
 
 def print_pitches(pitches):
