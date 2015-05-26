@@ -14,7 +14,7 @@ import java.util.Map;
  */
 
 public class NearestSongsMain {
-    public static final String USG_MSG = "usage: load_recommender.sh path_to_song_db num_features";
+    public static final String USG_MSG = "usage: load_recommender.sh path_to_song_db";
     private static final int NUM_REC = 5;
 
     private static void quit(int status){
@@ -34,17 +34,18 @@ public class NearestSongsMain {
 
 
     public static void main(String[] args) {
-        if (args.length != 2) {
+        if (args.length != 1) {
             quit(-1);
         } else{
             try {
-                int songDim = Integer.parseInt(args[1]);
-                            /*load songs */
-                List<Song> songList = getSongList(args[0], songDim);
+                /*load songs */
+                List<Song> songList = new ArrayList<>();
+                int songDim = populateSongList(args[0], songList);
                 Map<String, Song> songsByID = getIDTable(songList);
 
                 KDTree<Song, Double> songTree = new KDNode<>(songDim, songList);
 
+                System.out.println("Successfully loaded songs. Entering recommend loop.");
                 runQueryLoop(songsByID, songTree);
             } catch (NumberFormatException n) {
                 quit(-1);
@@ -88,27 +89,47 @@ public class NearestSongsMain {
         return table;
     }
 
-    private static List<Song> getSongList(String path, int songDim) {
-        List<Song> songList = new ArrayList<>();
-        int lineNum = 0;
+    /**
+     *
+     * @param path
+     * @return dimension of each song (if they are all the same)
+     */
+    private static int populateSongList(String path, List<Song> toPopulate) throws IOException{
+        if (toPopulate == null) {
+            throw new NullPointerException("cannot populate null song list");
+        }
+        int lineNum = 1;
+        int numFields = -1;
         try (BufferedReader br = new BufferedReader(new FileReader(new File(path)))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] fields = line.split(",");
+                if (numFields == -1) {
+                    /* if this is the first line, set the number of fields */
+                    numFields = fields.length;
+                } else {
+                    /* otherwise, check that this line has the right number of fields and exit if not */
+                    if (numFields != fields.length) {
+                        throw new IOException("wrong number of fields in data file " + path + ": line " + lineNum);
+                    }
+                }
+                /* csv so far is well-formed */
                 ImmutableList.Builder<Double> ilb = new ImmutableList.Builder<>();
-                for (int i = 2; i < fields.length; i++) {
+                for (int i = 2; i < numFields; i++) {
                     ilb.add(Double.parseDouble(fields[i]));
                 }
-                songList.add(new Song(songDim, fields[0], fields[1], ilb.build()));
+                toPopulate.add(new Song(numFields - 2, fields[0], fields[1], ilb.build()));
                 lineNum++;
             }
-        } catch(NumberFormatException n){
-            System.err.println("bad song input file: line " + lineNum);
-            System.exit(-1);
+        } catch (NumberFormatException n) {
+            quit(-1, "number format problem in " + path + ": line " + lineNum);
         } catch (IOException e) {
-            System.err.println("problem opening file: "+path);
-            System.exit(-1);
+            quit(-1, e.getMessage());
         }
-        return songList;
+        if (numFields < 0) {
+            /* numFields was never set, so csv has 0 lines */
+            throw new IOException("empty csv: " + path);
+        }
+        return numFields - 2;
     }
 }
