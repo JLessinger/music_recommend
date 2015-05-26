@@ -1,8 +1,1 @@
-out/
-target/
-*.iml
-*.eml
-*~
-.idea/
-kdtree/
 .DS_Store
