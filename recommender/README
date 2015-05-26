@@ -15,7 +15,7 @@ $ mvn clean package
 
 run:
 
-$ load_recommender.sh path_to_song_file
+$ load_recommender.sh path_to_song_file num_features
 
 This will load the songs into memory and then enter an infinite loop. User should enter song ID and press enter. Program will output a few of the most similar songs.
 
@@ -23,3 +23,5 @@ Song file must be in CSV format (no header row) with the following fields in thi
 
 song name | song id | coordinate 1 | coordinate 2 | ...
 with any fixed number of coordinates.
+
+num_features is the number of coordinates (number of columns - 2)

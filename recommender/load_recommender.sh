@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-PROJ=spotify_hack
+PROJ=recommender
 VERSION=1.0-SNAPSHOT
 PROJJAR=$PROJ-$VERSION.jar
-PKG=spotify_hack
+PKG=recommender
 
 CURDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 CURDIR=${CURDIR%%/}
