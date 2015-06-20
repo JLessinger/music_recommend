@@ -7,7 +7,7 @@ import re
 from time import time
 from collections import namedtuple
 
-song_record = namedtuple("song_record", "id  artist  title  pitches btchromas")
+song_record = namedtuple("song_record", "id  artist  title  timbre sections_start sections_conf segments_start")
 
 def iterate_folder_songs(root_path, filename_re):
     """Iterate over a collection of HDF5 database files, each one containing
@@ -52,14 +52,16 @@ def iterate_folder_songs_extracted(root_path, filename_re):
         id = hdf5_getters.get_track_id(song)
         artist = hdf5_getters.get_artist_name(song)
         title = hdf5_getters.get_title(song)
-        pitches = hdf5_getters.get_segments_pitches(song)
-        btchromas = beat_aligned_feats.get_btchromas(song)
+        timbre = hdf5_getters.get_segments_timbre(song)
+	sections_start = hdf5_getters.get_sections_start(song)
+	sections_conf = hdf5_getters.get_sections_confidence(song)
+	segments_start = hdf5_getters.get_segments_start(song)
 
         #analysis = song["analysis"]
         #pitches = analysis["segments_pitches"]
 
         # Combine into a song record
-        song_rec = song_record(id, artist, title, pitches, btchromas)
+        song_rec = song_record(id, artist, title, timbre, sections_start, sections_conf, segments_start)
         yield song_rec
 
 def print_pitches(pitches):
