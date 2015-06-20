@@ -79,3 +79,17 @@ HOW TO USE
 
 
 BUGS
+
+
+
+ALGORITHM
+
+-Song represented as point in Euclidean space. Recommend = n nearest neighbors
+-Point computed from song features:
+       -Find "chorus" section
+       	     -Highest "confidence" section
+	     	      -Could use other confidence measures
+       -Get segments from section
+       -Get timbre vector contours from section
+       -Get the 12 m-th order best fit polynomials
+       -Vector has these 12*m components
