@@ -63,12 +63,12 @@ public class NearestSongsMain {
             if(search==null) {
                 System.out.println("song not found");
             } else {
-                        /* we have to get 1 more because it will always find the song itself */
+                    /* we have to get 1 more because it will always find the song itself */
                 for (Song s : songTree.getClosestN(NUM_REC+1, search)) {
 
                     if (!s.getID().equals(search.getID())) {
-                                /*dont recommend the same song*/
-                        System.out.println(s.getName() + " (id=" + s.getID() + ")");
+                        /*dont recommend the same song*/
+                        System.out.printf("(id=%s, name=%s)\n", s.getID(), s.getName());
 
                     }
                 }
@@ -82,7 +82,7 @@ public class NearestSongsMain {
      * @return id -> coordinates
      */
     private static Map<String, Song> getIDTable(List<Song> songList) {
-       Map<String, Song> table = new HashMap<>();
+        Map<String, Song> table = new HashMap<>();
         for(Song s : songList){
             table.put(s.getID(), s);
         }

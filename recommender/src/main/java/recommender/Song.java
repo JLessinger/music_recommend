@@ -15,7 +15,7 @@ public class Song implements MultiComparable<Double> {
 
 
     /**
-     * @param dim the number of dimensions in which the star resides
+     * @param dim the number of dimensions in which the song resides
      * @param n   name
      * @param id   id
      * @param ild the coordinates
