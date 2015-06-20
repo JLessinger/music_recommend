@@ -1,4 +1,4 @@
-package spotify_hack;
+package recommender;
 
 import com.google.common.collect.ImmutableList;
 import kdtree.MultiComparable;
@@ -8,20 +8,20 @@ import kdtree.MultiComparable;
  */
 public class Song implements MultiComparable<Double> {
 
-    private final long id;
+    private final String id;
     private final String name;
     private final int dimension;
     private final ImmutableList<Double> coords;
 
 
     /**
-     * @param dim the number of dimensions in which the star resides
+     * @param dim the number of dimensions in which the song resides
      * @param n   name
      * @param id   id
      * @param ild the coordinates
      * @throws NullPointerException if coordinate list is null
      */
-    public Song(int dim, String n, int id, ImmutableList<Double> ild) throws NullPointerException {
+    public Song(int dim, String n, String id, ImmutableList<Double> ild) throws NullPointerException {
 
         if (ild == null) {
             throw new NullPointerException("Coordinate list null.");
@@ -42,7 +42,7 @@ public class Song implements MultiComparable<Double> {
 
     @Override
     public String getID() {
-        return ""+id;
+        return id;
     }
 
     @Override
