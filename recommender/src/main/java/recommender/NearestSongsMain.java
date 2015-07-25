@@ -65,18 +65,22 @@ public class NearestSongsMain {
             if(search==null) {
                 System.out.println("song not found");
             } else {
+                System.out.print("Searching for ");
+                printSongWithSection(search);
                     // we have to get 1 more because it will always find the song itself
                 for (Song s : songTree.getClosestN(NUM_REC+1, search)) {
-
+                    // dont recommend the same song
                     if (!s.getID().equals(search.getID())) {
-                        // dont recommend the same song
-                        System.out.printf("(id=%s, name=%s, %s-%s)\n", s.getID(), s.getName(),
-                                s.getSectionStartTimePretty(), s.getSectionEndTimePretty());
-
+                       printSongWithSection(s);
                     }
                 }
             }
         }
+    }
+
+    private static void printSongWithSection(Song s) {
+        System.out.printf("(id=%s, name=%s, %s-%s)\n", s.getID(), s.getName(),
+                s.getSectionStartTimePretty(), s.getSectionEndTimePretty());
     }
 
     /**
