@@ -85,6 +85,7 @@ public class Song implements MultiComparable<Double> {
         }
     }
 
+    @Override
     public String toString() {
         String s = "Name: " + name + " ID: " + id + " dim: " + dimension + " co: ";
         for (int i = 0; i < dimension; i++) {
