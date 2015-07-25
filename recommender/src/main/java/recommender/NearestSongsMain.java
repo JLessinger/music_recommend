@@ -16,6 +16,8 @@ import java.util.Map;
 public class NearestSongsMain {
     public static final String USG_MSG = "usage: load_recommender.sh path_to_song_db";
     private static final int NUM_REC = 5;
+    private static final int NUM_META_FIELDS = 4;
+    private static final int NUM_FEATURES = 1;
 
     private static void quit(int status){
         if(status!=0) {
@@ -38,9 +40,9 @@ public class NearestSongsMain {
             quit(-1);
         } else{
             try {
-                /*load songs */
+                // load songs
                 List<Song> songList = new ArrayList<>();
-                int songDim = populateSongList(args[0], songList);
+                int songDim = populateSongList(args[0], songList, NUM_FEATURES);
                 Map<String, Song> songsByID = getIDTable(songList);
 
                 KDTree<Song, Double> songTree = new KDNode<>(songDim, songList);
@@ -63,12 +65,13 @@ public class NearestSongsMain {
             if(search==null) {
                 System.out.println("song not found");
             } else {
-                    /* we have to get 1 more because it will always find the song itself */
+                    // we have to get 1 more because it will always find the song itself
                 for (Song s : songTree.getClosestN(NUM_REC+1, search)) {
 
                     if (!s.getID().equals(search.getID())) {
-                        /*dont recommend the same song*/
-                        System.out.printf("(id=%s, name=%s)\n", s.getID(), s.getName());
+                        // dont recommend the same song
+                        System.out.printf("(id=%s, name=%s, %s-%s)\n", s.getID(), s.getName(),
+                                s.getSectionStartTimePretty(), s.getSectionEndTimePretty());
 
                     }
                 }
@@ -94,31 +97,26 @@ public class NearestSongsMain {
      * @param path
      * @return dimension of each song (if they are all the same)
      */
-    private static int populateSongList(String path, List<Song> toPopulate) throws IOException{
+    private static int populateSongList(String path, List<Song> toPopulate, int numFeatures) throws IOException{
         if (toPopulate == null) {
             throw new NullPointerException("cannot populate null song list");
         }
         int lineNum = 1;
-        int numFields = -1;
         try (BufferedReader br = new BufferedReader(new FileReader(new File(path)))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] fields = line.split(",");
-                if (numFields == -1) {
-                    /* if this is the first line, set the number of fields */
-                    numFields = fields.length;
-                } else {
-                    /* otherwise, check that this line has the right number of fields and exit if not */
-                    if (numFields != fields.length) {
-                        throw new IOException("wrong number of fields in data file " + path + ": line " + lineNum);
-                    }
+                if (numFeatures + NUM_META_FIELDS != fields.length) {
+                    throw new IOException("wrong number of fields in data file " + path + ": line " + lineNum);
                 }
                 /* csv so far is well-formed */
                 ImmutableList.Builder<Double> ilb = new ImmutableList.Builder<>();
-                for (int i = 2; i < numFields; i++) {
+                for (int i = NUM_META_FIELDS; i < numFeatures + NUM_META_FIELDS; i++) {
                     ilb.add(Double.parseDouble(fields[i]));
                 }
-                toPopulate.add(new Song(numFields - 2, fields[0], fields[1], ilb.build()));
+                double startTime = Double.parseDouble(fields[2]);
+                double endTime = Double.parseDouble(fields[3]);
+                toPopulate.add(new Song(numFeatures, fields[0], fields[1], startTime, endTime, ilb.build()));
                 lineNum++;
             }
         } catch (NumberFormatException n) {
@@ -126,10 +124,10 @@ public class NearestSongsMain {
         } catch (IOException e) {
             quit(-1, e.getMessage());
         }
-        if (numFields < 0) {
-            /* numFields was never set, so csv has 0 lines */
+        if (lineNum == 1) {
+            // csv has no good lines
             throw new IOException("empty csv: " + path);
         }
-        return numFields - 2;
+        return numFeatures;
     }
 }
