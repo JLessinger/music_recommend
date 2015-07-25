@@ -1,5 +1,6 @@
 import json
 import os
+import numpy as np
 from os.path import basename
 
 def get_json_obj(anal_name):
@@ -15,7 +16,7 @@ def get_artist_name(anal_name):
     return get_json_obj(anal_name)['meta']['artist']
 
 def get_mapper(anal_name, list_key, key):
-    return map(lambda x: x[key], get_json_obj(anal_name)[list_key])
+    return np.array(map(lambda x: x[key], get_json_obj(anal_name)[list_key]))
 
 def get_sections_start(anal_name):
     return get_mapper(anal_name, 'sections', 'start')

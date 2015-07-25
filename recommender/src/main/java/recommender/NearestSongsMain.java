@@ -69,7 +69,7 @@ public class NearestSongsMain {
                 printSongWithSection(search);
                     // we have to get 1 more because it will always find the song itself
                 for (Song s : songTree.getClosestN(NUM_REC+1, search)) {
-                    // dont recommend the same song
+                    // dont recommend the input song
                     if (!s.getID().equals(search.getID())) {
                        printSongWithSection(s);
                     }
