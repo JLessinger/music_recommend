@@ -6,6 +6,7 @@ import beat_aligned_feats
 import re
 from time import time
 from collections import namedtuple
+import json_anal_getters
 
 song_record = namedtuple("song_record", "id  artist  title  timbre sections_start sections_conf segments_start song_end")
 
@@ -29,8 +30,7 @@ def iterate_folder_songs(root_path, filename_re):
             # Open an individual song file
             filepath = os.path.join(dirpath, filename)
             # with h5py.File(filepath, 'r') as song_file:
-            with hdf5_getters.open_h5_file_read(filepath) as song_file:
-                yield song_file
+            yield filename
 
 def iterate_folder_songs_extracted(root_path, filename_re):
     """Iterate over a collection of HDF5 database files, each one containing
@@ -40,7 +40,7 @@ def iterate_folder_songs_extracted(root_path, filename_re):
         root_path -- File path to the root of the file collection.
         filename_re -- Regular expression to match HDF5 files
     """
-    for song in iterate_folder_songs(root_path, filename_re):
+    for filename in iterate_folder_songs(root_path, filename_re):
         
         # Extract the important data from the full song record
         #metadata = song["metadata"]["songs"][0]
@@ -49,14 +49,25 @@ def iterate_folder_songs_extracted(root_path, filename_re):
         #album = metadata[14]
         #title = metadata[18]
         
-        id = hdf5_getters.get_track_id(song)
-        artist = hdf5_getters.get_artist_name(song)
-        title = hdf5_getters.get_title(song)
-        timbre = hdf5_getters.get_segments_timbre(song)
-	sections_start = hdf5_getters.get_sections_start(song)
-	sections_conf = hdf5_getters.get_sections_confidence(song)
-	segments_start = hdf5_getters.get_segments_start(song)
-	song_end = hdf5_getters.get_duration(song)
+	if filename[-2:] == 'h5':
+		song = hdf5_getters.open_h5_file_read(filename)
+		id = hdf5_getters.get_track_id(song)
+		artist = hdf5_getters.get_artist_name(song)
+		title = hdf5_getters.get_title(song)
+		timbre = hdf5_getters.get_segments_timbre(song)
+		sections_start = hdf5_getters.get_sections_start(song)
+		sections_conf = hdf5_getters.get_sections_confidence(song)
+		segments_start = hdf5_getters.get_segments_start(song)
+		song_end = hdf5_getters.get_duration(song)
+	elif filename[-8:] == 'analysis':
+		id = json_anal_getters.get_track_id(filename)
+		artist = json_anal_getters.get_artist_name(filename)
+		title = json_anal_getters.get_title(filename)
+		timbre = json_anal_getters.get_segments_timbre(filename)
+		sections_start = json_anal_getters.get_sections_start(filename)
+		sections_conf = json_anal_getters.get_sections_confidence(filename)
+		segments_start = json_anal_getters.get_segments_start(filename)
+		song_end = json_anal_getters.get_duration(filename)
 
         #analysis = song["analysis"]
         #pitches = analysis["segments_pitches"]
@@ -89,7 +100,7 @@ if __name__ == '__main__':
     to the data root directory.
     """
     root_path = "MillionSongSubset/data"
-    filename_re = "^[A-Z]{7}[0-9,A-F]{11}\.h5$" # Example: TRBIJIA128F425F57D.h5
+    filename_re = "^[A-Z]{7}[0-9,A-F]{11}\.(h5|analysis)$" # Example: TRBIJIA128F425F57D.h5
     time_start = time()
     for loop_nr, song_rec in enumerate(
                 iterate_folder_songs_extracted(root_path, filename_re)):

@@ -4,12 +4,12 @@ import numpy as np
 from os.path import basename
 
 def get_json_obj(anal_name):
-    return json.loads(open(anal_name, 'r').read())
+    return json.loads(open('analysis/{0}'.format(anal_name), 'r').read())
 
 def get_track_id(anal_name):
     return os.path.splitext(anal_name)[0]
 
-def get_artist_name(anal_name):
+def get_title(anal_name):
     return get_json_obj(anal_name)['meta']['title']
 
 def get_artist_name(anal_name):

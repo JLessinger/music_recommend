@@ -43,7 +43,7 @@ def save_feature_database(root_path,csvpath):
     #
     # Returns: none
     
-    filename_re = "^[A-Z]{7}[0-9,A-F]{11}\.h5$" # Example: TRBIJIA128F425F57D.h5
+    filename_re = "^[A-Z]{7}[0-9,A-F]{11}\.(h5|analysis)$" # Example: TRBIJIA128F425F57D.h5
     time_start = time()
     for loop_nr, song_rec in enumerate(
                                        load_million_song.iterate_folder_songs_extracted(root_path, filename_re)):
@@ -109,3 +109,8 @@ def generate_feature_file(root_path,csvpath):
     except OSError:
     	pass
     save_feature_database(root_path,csvpath)
+
+if __name__ == '__main__':
+   root_path = 'analysis'
+   csvpath = 'songs_test.csv'
+   generate_feature_file(root_path,csvpath)
