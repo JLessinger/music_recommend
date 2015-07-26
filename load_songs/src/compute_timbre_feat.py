@@ -19,7 +19,6 @@ def save_feature_vector(feature_vector,artist,title,id,f):
     
     csvrow = str(artist) + ': ' + str(title) + ',' + str(id) + ',' + \
         str(','.join(map(str, feature_vector))) + '\n'
-    #print csvrow
     f.write(csvrow)
 
 def save_feature_database(root_path,csvpath):
@@ -91,9 +90,9 @@ def get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_e
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print USG_MSG
     else:
-        root_path = '../analysis_files'
-        csv_path = sys.argv[1]
+        root_path = sys.argv[1]
+        csv_path = sys.argv[2]
         save_feature_database(root_path, csv_path)

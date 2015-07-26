@@ -28,7 +28,8 @@ def iterate_folder_songs(root_path, filename_re):
             # Open an individual song file
             filepath = os.path.join(dirpath, filename)
             # with h5py.File(filepath, 'r') as song_file:
-            yield filename
+            #yield filename
+            yield filepath
 
 def iterate_folder_songs_extracted(root_path, filename_re):
     """Iterate over a collection of HDF5 database files, each one containing
@@ -38,13 +39,14 @@ def iterate_folder_songs_extracted(root_path, filename_re):
         root_path -- File path to the root of the file collection.
         filename_re -- Regular expression to match HDF5 files
     """
-    for filename in iterate_folder_songs(root_path, filename_re):
+    for filepath in iterate_folder_songs(root_path, filename_re):
         # Extract the important data from the full song record
 
-        full_path = os.path.join(root_path, filename)
-        
-        if filename[-2:] == 'h5':
-            song = hdf5_getters.open_h5_file_read(full_path)
+        filename = os.path.basename(filepath)
+        ext = os.path.splitext(filename)[1]
+
+        if ext == '.h5':
+            song = hdf5_getters.open_h5_file_read(filepath)
             id = hdf5_getters.get_track_id(song)
             artist = hdf5_getters.get_artist_name(song)
             title = hdf5_getters.get_title(song)
@@ -54,15 +56,15 @@ def iterate_folder_songs_extracted(root_path, filename_re):
             segments_start = hdf5_getters.get_segments_start(song)
             song_end = hdf5_getters.get_duration(song)
             song.close()
-        elif filename[-8:] == 'analysis':
-            id = json_anal_getters.get_track_id(full_path)
-            artist = json_anal_getters.get_artist_name(full_path)
-            title = json_anal_getters.get_title(full_path)
-            timbre = json_anal_getters.get_segments_timbre(full_path)
-            sections_start = json_anal_getters.get_sections_start(full_path)
-            sections_conf = json_anal_getters.get_sections_confidence(full_path)
-            segments_start = json_anal_getters.get_segments_start(full_path)
-            song_end = json_anal_getters.get_duration(full_path)
+        elif ext == '.analysis':
+            id = json_anal_getters.get_track_id(filepath)
+            artist = json_anal_getters.get_artist_name(filepath)
+            title = json_anal_getters.get_title(filepath)
+            timbre = json_anal_getters.get_segments_timbre(filepath)
+            sections_start = json_anal_getters.get_sections_start(filepath)
+            sections_conf = json_anal_getters.get_sections_confidence(filepath)
+            segments_start = json_anal_getters.get_segments_start(filepath)
+            song_end = json_anal_getters.get_duration(filepath)
         else:
             raise Exception("unrecognized file type: {0}".format(filename))
 
