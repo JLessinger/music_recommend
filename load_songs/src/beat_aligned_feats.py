@@ -25,7 +25,7 @@ import sys
 import numpy as np
 
 try:
-    from src.hdf5 import hdf5_getters as GETTERS
+    from hdf5 import hdf5_getters as GETTERS
 except ImportError:
     print 'cannot find file hdf5_getters.py'
     print 'you must put MSongsDB/PythonSrc in your path or import it otherwise'

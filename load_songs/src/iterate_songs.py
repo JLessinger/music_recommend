@@ -3,7 +3,7 @@ import re
 from time import time
 from collections import namedtuple
 
-from src.hdf5 import hdf5_getters
+from hdf5 import hdf5_getters
 import json_anal_getters
 
 song_record = namedtuple("song_record", "id  artist  title  timbre sections_start sections_conf segments_start song_end")

@@ -1,7 +1,6 @@
 import json
 import numpy as np
-from src import util
-
+import util
 
 def get_json_obj(anal_path):
     return json.loads(open('{0}'.format(anal_path), 'r').read())

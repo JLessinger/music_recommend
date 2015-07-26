@@ -3,7 +3,7 @@ import os
 import json
 import sys
 import urllib2
-from src import util
+import util
 from util import get_config_key
 
 ECHONEST_API_KEY = get_config_key("ECHONEST_API_KEY")
