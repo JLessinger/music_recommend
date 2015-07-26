@@ -3,8 +3,9 @@ import iterate_songs
 
 from time import time
 import sys
+from util import get_config_key
 
-ORDER = 2
+ORDER = get_config_key("POLY_ORDER")
 USG_MSG = "usage: python compute_timbre_feat.py output_csv_path"
 
 def save_feature_vector(feature_vector,artist,title,id,f):
@@ -60,7 +61,7 @@ def save_feature_database(root_path,csvpath):
     csvfile.close()
 
 ## Input: n X 12 (segment by timbre component)
-## Output: order x 12
+## Output: (1+order) x 12
 def get_poly_coefficients(timbre_cols, timestamps, order):
     assert timbre_cols.shape[0] == timestamps.shape[0]
     def fit_series(ser_arr):

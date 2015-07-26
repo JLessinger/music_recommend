@@ -6,8 +6,9 @@ PKG=recommender
 
 CURDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 CURDIR=${CURDIR%%/}
-LIBCP=lib/*:${HOME%%/}/.m2/repository/com/google/guava/guava/18.0/*
-CP=$LIBCP:$CURDIR/target/$PROJJAR
-
+LIBDIR=lib/*
+MVNDIR=${HOME%%/}/.m2/repository
+MVNLIB=$MVNDIR/com/google/guava/guava/18.0/*:$MVNDIR/org/json/json/20090211/*
+CP=$LIBDIR:$MVNLIB:$CURDIR/target/$PROJJAR
 
 java -ea -Xmx6g -cp $CP $PKG.NearestSongsMain "$@"

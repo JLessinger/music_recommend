@@ -40,11 +40,6 @@ def iterate_folder_songs_extracted(root_path, filename_re):
     """
     for filename in iterate_folder_songs(root_path, filename_re):
         # Extract the important data from the full song record
-        #metadata = song["metadata"]["songs"][0]
-        #id = metadata[17]
-        #artist = metadata[9]
-        #album = metadata[14]
-        #title = metadata[18]
 
         full_path = os.path.join(root_path, filename)
         

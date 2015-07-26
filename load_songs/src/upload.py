@@ -2,10 +2,14 @@ import subprocess
 import os
 import json
 import sys
-from config import ECHONEST_API_KEY
 import urllib2
+from src import util
+from util import get_config_key
+
+ECHONEST_API_KEY = get_config_key("ECHONEST_API_KEY")
 
 def upload_and_get_echonest_id(mp3name):
+    ECHONEST_API_KEY = get_config_key("ECHONEST_API_KEY")
     cmd = 'curl -F "api_key={0}" -F "filetype=mp3" -F "track=@{1}" "http://developer.echonest.com/api/v4/track/upload"'.format(ECHONEST_API_KEY, mp3name)
     devnull = open(os.devnull, 'w')
     return get_id_from_echonest_json_string(subprocess.check_output(cmd, shell=True, stderr=devnull))
@@ -27,13 +31,14 @@ def get_analysis_from_profile(prof_json, title):
     anal_json['meta']['title'] = title
     return json.dumps(anal_json)
 
-def get_analysis(mp3name):
-    song_id = upload_and_get_echonest_id(mp3name)
+def get_analysis(mp3path):
+    song_id = upload_and_get_echonest_id(mp3path)
     profile = get_profile(song_id)
-    return song_id, get_analysis_from_profile(profile, mp3name[0:-4])
+    mp3name = util.get_file_base(mp3path)
+    return song_id, get_analysis_from_profile(profile, mp3name)
 
-def write_feature_file(mp3name):
-    anal = get_analysis(mp3name)    
+def write_analysis_file(mp3path):
+    anal = get_analysis(mp3path)
     f = open("../analysis_files/{0}.analysis".format(anal[0]), 'w')
     f.write(anal[1])
     f.close()
@@ -41,7 +46,7 @@ def write_feature_file(mp3name):
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
-        write_feature_file(sys.argv[1])
+        write_analysis_file(sys.argv[1])
         print "done writing"
     else:
         print "usage: python upload.py mp3_file"

@@ -1,12 +1,13 @@
 import json
-import os
 import numpy as np
+from src import util
+
 
 def get_json_obj(anal_path):
     return json.loads(open('{0}'.format(anal_path), 'r').read())
 
 def get_track_id(anal_name):
-    return os.path.splitext(anal_name)[0]
+    return util.get_file_base(anal_name)
 
 def get_title(anal_name):
     return get_json_obj(anal_name)['meta']['title']

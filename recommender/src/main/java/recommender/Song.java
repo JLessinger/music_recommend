@@ -53,12 +53,16 @@ public class Song implements MultiComparable<Double> {
     return id;
   }
 
-  public String getSectionStartTimePretty() {
-    return sectionStartTime == -1 ? "UNKNOWN" : "" + sectionStartTime;
+  private String getTimePretty(double time) {
+    return time == -1 ? "UNKNOWN" : "" + (int) time;
   }
 
-  public String getSectionEndTimePretty() {
-    return sectionEndTime == -1 ? "UNKNOWN" : "" + sectionEndTime;
+  String getSectionStartTimePretty() {
+    return getTimePretty(sectionStartTime);
+  }
+
+  String getSectionEndTimePretty() {
+    return getTimePretty(sectionEndTime);
   }
 
   @Override

@@ -1,9 +1,16 @@
 package recommender;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import kdtree.*;
+import kdtree.KDNode;
+import kdtree.KDTree;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,9 +22,31 @@ import java.util.Map;
 
 public class NearestSongsMain {
   public static final String USG_MSG = "usage: load_recommender.sh path_to_song_db";
-  private static final int NUM_REC = 5;
-  private static final int NUM_META_FIELDS = 4;
-  private static final int NUM_FEATURES = 1;
+  private static int NUM_REC;
+  private static int NUM_META_FIELDS;
+  private static int NUM_FEATURES;
+
+  static {
+    try {
+      String jsonString = readFile("../global_config.json", Charsets.US_ASCII);
+      JSONObject jsonObj = new JSONObject(jsonString);
+      NUM_REC = jsonObj.getInt("NUM_RECOMMENDATIONS");
+      NUM_META_FIELDS = jsonObj.getInt("NUM_META_FIELDS");
+      NUM_FEATURES = (1 + jsonObj.getInt("POLY_ORDER")) * 12;
+    } catch (JSONException | IOException e) {
+      System.err.println("warning: error reading global config. Falling back to defaults");
+      System.err.println("cause: " + e);
+      NUM_REC = 5;
+      NUM_META_FIELDS = 4;
+      NUM_FEATURES = 36;
+    }
+  }
+
+
+  private static String readFile(String path, Charset encoding) throws IOException {
+    byte[] encoded = Files.readAllBytes(Paths.get(path));
+    return new String(encoded, encoding);
+  }
 
   private static void quit(int status){
     if(status!=0) {
@@ -79,7 +108,7 @@ public class NearestSongsMain {
   }
 
   private static void printSongWithSection(Song s) {
-    System.out.printf("(id=%s, name=%s, %s-%s)\n", s.getID(), s.getName(),
+    System.out.printf("(id=%s, song=%s, %s-%s)\n", s.getID(), s.getName(),
         s.getSectionStartTimePretty(), s.getSectionEndTimePretty());
   }
 
