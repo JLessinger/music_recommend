@@ -1,4 +1,5 @@
 import numpy as np
+import sqlite3
 import iterate_songs
 
 from time import time
@@ -6,33 +7,23 @@ import sys
 from util import get_config_key
 
 ORDER = get_config_key("POLY_ORDER")
-USG_MSG = "usage: python compute_timbre_feat.py analysis_root_path output_csv_path"
+INSERT_STMT = 'INSERT INTO songs (title, artist, id, startTime, endTime, features) VALUES  (?, ?, ?, ?, ?, ?);'
 
-def save_feature_vector(feature_vector,artist,title,id,f):
-    # Save feature vector to a comma separated values file
-    #
-    # Parameters:
-    # feature_vector: 1 x S-1 np.array -- vector of features
-    # csvpath: string -- path where CSV file should be saved
-    #
-    # Returns: none
-    
-    csvrow = str(artist) + ': ' + str(title) + ',' + str(id) + ',' + \
-        str(','.join(map(str, feature_vector))) + '\n'
-    f.write(csvrow)
+USG_MSG = "usage: python compute_timbre_feat.py analysis_root_path output_db_path"
 
-def save_feature_database(root_path,csvpath):
-    # Create a database where each song is represented by a line in a CSV file
-    # as such: artist/title , echonest id , feature_values
-    #
+
+def features_as_csvrow(feature_vector):
+    return ','.join(map(str, feature_vector))
+
+
+def get_song_tuples(root_path):
+    tuples = []
     # Parameters
     # root_path: string -- path to MillionSongSubset's data folder
-    # csvpath: string -- path where the .csv database will be created
     #
-    # Returns: none
+    # Returns: lists of tuples where each tuple is a song (database row)
     
     filename_re = "^[A-Z]{7}[0-9,A-F]{11}\.(h5|analysis)$" # Example: TRBIJIA128F425F57D.h5
-    csvfile = open(csvpath,'w')
 
     time_start = time()
     for loop_nr, song_rec in enumerate(iterate_songs.iterate_folder_songs_extracted(root_path, filename_re)):
@@ -49,7 +40,8 @@ def save_feature_database(root_path,csvpath):
             artist = song_rec.artist
             title = song_rec.title
             id = song_rec.id
-            save_feature_vector(feature_vector,artist,title,id,csvfile)
+            start, end = get_start_end(sections_start, sections_conf, song_end)
+            tuples.append((title, artist, str(id), start, end, features_as_csvrow(feature_vector)))
 
             if ((loop_nr + 1) % 100) == 0:
                 print "{0} songs read in {1:.1f} seconds" \
@@ -57,7 +49,15 @@ def save_feature_database(root_path,csvpath):
 
     end_time = time() - time_start
     print "Total: {0} songs read in {1:.1f} seconds".format(loop_nr + 1, end_time)
-    csvfile.close()
+    return tuples
+
+def save_feature_sql_database(rootpath, dbpath):
+    tuples = get_song_tuples(rootpath)
+    con = sqlite3.connect(dbpath)
+    cur = con.cursor()
+    cur.executemany(INSERT_STMT, tuples)
+    con.commit()
+
 
 ## Input: n X 12 (segment by timbre component)
 ## Output: (1+order) x 12
@@ -67,13 +67,17 @@ def get_poly_coefficients(timbre_cols, timestamps, order):
         return np.polyfit(timestamps, ser_arr, order)
     return np.column_stack(tuple(map(fit_series, timbre_cols.transpose())))
 
-def get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_end):
+def get_start_end(sections_start, sections_conf, song_end):
     best_section = 1 + np.argmax(sections_conf[1:])
     best_section_start = sections_start[best_section]
     if len(sections_start) > best_section + 1:
         best_section_end = sections_start[best_section + 1]
     else:
         best_section_end = song_end
+    return (best_section_start, best_section_end)
+
+def get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_end):
+    best_section_start, best_section_end = get_start_end(sections_start, sections_conf, song_end)
     seg_indices = []
     for i in range(len(segments_start)):
         if best_section_start < segments_start[i] < best_section_end:
@@ -82,11 +86,9 @@ def get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_e
     timbre_feature = timbre[seg_indices,:]
     timestamps = segments_start[seg_indices]
     if len(seg_indices) <= ORDER:
-        return None
+        return None # i think silently fail is ok
     poly_feature = get_poly_coefficients(timbre_feature,timestamps,ORDER).reshape(-1)
-    start_end_vector = [best_section_start,best_section_end]
-    feature_vector = np.append(start_end_vector,poly_feature)
-    return feature_vector
+    return poly_feature
 
 
 if __name__ == '__main__':
@@ -94,5 +96,5 @@ if __name__ == '__main__':
         print USG_MSG
     else:
         root_path = sys.argv[1]
-        csv_path = sys.argv[2]
-        save_feature_database(root_path, csv_path)
+        db_path = sys.argv[2]
+        save_feature_sql_database(root_path, db_path)
