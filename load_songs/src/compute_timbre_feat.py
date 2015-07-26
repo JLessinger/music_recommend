@@ -18,6 +18,13 @@ def features_as_str(feature_vector):
     return ','.join(map(str, feature_vector))
 
 
+def unicode_if_str(obj, encoding):
+    if isinstance(obj, str):
+        return unicode(obj, encoding)
+    else:
+        return obj
+
+
 def get_song_tuples(root_path):
     tuples = []
     # Parameters
@@ -43,7 +50,8 @@ def get_song_tuples(root_path):
             title = song_rec.title
             id = song_rec.id
             start, end = get_start_end(sections_start, sections_conf, song_end)
-            tuples.append((title, artist, str(id), start, end, features_as_str(feature_vector)))
+            tuples.append((unicode_if_str(title, 'utf-8'), unicode_if_str(artist, 'utf-8'),
+                           unicode_if_str(id, 'utf-8'), start, end, unicode_if_str(features_as_str(feature_vector), 'utf-8')))
 
             if ((loop_nr + 1) % 100) == 0:
                 print "{0} songs read in {1:.1f} seconds" \
