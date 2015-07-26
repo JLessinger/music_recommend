@@ -10,6 +10,7 @@ public class Song implements MultiComparable<Double> {
 
   private final String id;
   private final String name;
+  private final String artist;
   private final int dimension;
   private final double sectionStartTime;
   private final double sectionEndTime;
@@ -23,11 +24,11 @@ public class Song implements MultiComparable<Double> {
    * @param ild the coordinates
    * @throws NullPointerException if coordinate list is null
    */
-  public Song(int dim, String n, String id, ImmutableList<Double> ild) {
-    this(dim, n, id, -1, -1, ild);
+  public Song(int dim, String n, String artist, String id, ImmutableList<Double> ild) {
+    this(dim, n, id, artist, -1, -1, ild);
   }
 
-  public Song(int dim, String n, String id, double sectionStartTime, double sectionEndTime, ImmutableList<Double> ild){
+  public Song(int dim, String n, String artist, String id, double sectionStartTime, double sectionEndTime, ImmutableList<Double> ild){
     if (ild == null) {
       throw new NullPointerException("Coordinate list null.");
     }
@@ -35,12 +36,14 @@ public class Song implements MultiComparable<Double> {
       throw new IllegalArgumentException("Dimension does not match number of coordinates.");
     }
 
-    dimension = dim;
-    name = n;
+    this.dimension = dim;
+    this.name = n;
+    this.artist = artist;
     this.id = id;
-    coords = ild;
     this.sectionStartTime = sectionStartTime;
     this.sectionEndTime = sectionEndTime;
+    this.coords = ild;
+
   }
 
   @Override

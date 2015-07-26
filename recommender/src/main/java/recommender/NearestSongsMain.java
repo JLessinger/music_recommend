@@ -7,10 +7,17 @@ import kdtree.KDTree;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,23 +29,26 @@ import java.util.Map;
 
 public class NearestSongsMain {
   public static final String USG_MSG = "usage: load_recommender.sh path_to_song_db";
+  private static final String SELECT_STMT = "SELECT * FROM songs;";
   private static int NUM_REC;
-  private static int NUM_META_FIELDS;
   private static int NUM_FEATURES;
 
   static {
     try {
+      Class.forName("org.sqlite.JDBC");
+
       String jsonString = readFile("../global_config.json", Charsets.US_ASCII);
       JSONObject jsonObj = new JSONObject(jsonString);
       NUM_REC = jsonObj.getInt("NUM_RECOMMENDATIONS");
-      NUM_META_FIELDS = jsonObj.getInt("NUM_META_FIELDS");
       NUM_FEATURES = (1 + jsonObj.getInt("POLY_ORDER")) * 12;
     } catch (JSONException | IOException e) {
-      System.err.println("warning: error reading global config. Falling back to defaults");
+      System.err.println("warning: couldn't reading global config. Falling back to defaults");
       System.err.println("cause: " + e);
       NUM_REC = 5;
-      NUM_META_FIELDS = 4;
       NUM_FEATURES = 36;
+    } catch (ClassNotFoundException e) {
+      System.err.println("fatal: could not load sqlite jdbc driver");
+      System.exit(-1);
     }
   }
 
@@ -71,17 +81,17 @@ public class NearestSongsMain {
       try {
         // load songs
         List<Song> songList = new ArrayList<>();
-        int songDim = populateSongList(args[0], songList, NUM_FEATURES);
+        populateSongList(args[0], songList, NUM_FEATURES);
         Map<String, Song> songsByID = getIDTable(songList);
 
-        KDTree<Song, Double> songTree = new KDNode<>(songDim, songList);
+        KDTree<Song, Double> songTree = new KDNode<>(NUM_FEATURES, songList);
 
         System.out.println("Successfully loaded songs. Entering recommend loop.");
         runQueryLoop(songsByID, songTree);
-      } catch (NumberFormatException n) {
-        quit(-1);
       } catch(IOException io){
-        quit(-1, io.getMessage());
+        quit(-1, "fatal: IOExeption: " + io.getMessage());
+      } catch (SQLException e) {
+        quit(-1, "fatal: SQLException:" + e.getMessage());
       }
     }
   }
@@ -125,42 +135,39 @@ public class NearestSongsMain {
     return table;
   }
 
+    /*
   /**
    *
    * @param path
-   * @return dimension of each song (if they are all the same)
    */
-  private static int populateSongList(String path, List<Song> toPopulate, int numFeatures) throws IOException{
+  private static void populateSongList(String dbPath, List<Song> toPopulate, int numFeatures)
+      throws SQLException {
     if (toPopulate == null) {
       throw new NullPointerException("cannot populate null song list");
     }
-    int lineNum = 1;
-    try (BufferedReader br = new BufferedReader(new FileReader(new File(path)))) {
-      String line;
-      while ((line = br.readLine()) != null) {
-        String[] fields = line.split(",");
-        if (numFeatures + NUM_META_FIELDS != fields.length) {
-          throw new IOException("wrong number of fields in data file " + path + ": line " + lineNum);
-        }
-                /* csv so far is well-formed */
-        ImmutableList.Builder<Double> ilb = new ImmutableList.Builder<>();
-        for (int i = NUM_META_FIELDS; i < numFeatures + NUM_META_FIELDS; i++) {
-          ilb.add(Double.parseDouble(fields[i]));
-        }
-        double startTime = Double.parseDouble(fields[2]);
-        double endTime = Double.parseDouble(fields[3]);
-        toPopulate.add(new Song(numFeatures, fields[0], fields[1], startTime, endTime, ilb.build()));
-        lineNum++;
+    Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+    Statement stat = conn.createStatement();
+    ResultSet rs = stat.executeQuery(SELECT_STMT);
+    while (rs.next()) {
+      String name = rs.getString(1);
+      String artist = rs.getString(2);
+      String id = rs.getString(3);
+      double startTime = rs.getDouble(4);
+      double endTime = rs.getDouble(5);
+      String[] featureArray = rs.getString(6).split(",");
+      if (numFeatures != featureArray.length) {
+        System.err.println("warning: wrong number of features: " + name + " (" + id + "). skipping.");
+        continue;
       }
-    } catch (NumberFormatException n) {
-      quit(-1, "number format problem in " + path + ": line " + lineNum);
-    } catch (IOException e) {
-      quit(-1, e.getMessage());
+      ImmutableList.Builder<Double> ilb = new ImmutableList.Builder<>();
+      for (int i = 0; i < numFeatures; i++) {
+        try {
+          ilb.add(Double.parseDouble(featureArray[i]));
+        } catch (NumberFormatException e) {
+          System.err.println("warning: feature not a parsable as double for song " + name + "(" + id + ")");
+        }
+      }
+      toPopulate.add(new Song(numFeatures, name, artist, id, startTime, endTime, ilb.build()));
     }
-    if (lineNum == 1) {
-      // csv has no good lines
-      throw new IOException("empty csv: " + path);
-    }
-    return numFeatures;
   }
 }
