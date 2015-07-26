@@ -1,18 +1,20 @@
+import os
 import numpy as np
 import sqlite3
 import iterate_songs
 
 from time import time
+import time as t
 import sys
 from util import get_config_key
 
 ORDER = get_config_key("POLY_ORDER")
-INSERT_STMT = 'INSERT INTO songs (title, artist, id, startTime, endTime, features) VALUES  (?, ?, ?, ?, ?, ?);'
+INSERT_STMT = 'INSERT OR REPLACE INTO SONGS (title, artist, id, startTime, endTime, features) VALUES  (?, ?, ?, ?, ?, ?);'
 
 USG_MSG = "usage: python compute_timbre_feat.py analysis_root_path output_db_path"
 
 
-def features_as_csvrow(feature_vector):
+def features_as_str(feature_vector):
     return ','.join(map(str, feature_vector))
 
 
@@ -41,7 +43,7 @@ def get_song_tuples(root_path):
             title = song_rec.title
             id = song_rec.id
             start, end = get_start_end(sections_start, sections_conf, song_end)
-            tuples.append((title, artist, str(id), start, end, features_as_csvrow(feature_vector)))
+            tuples.append((title, artist, str(id), start, end, features_as_str(feature_vector)))
 
             if ((loop_nr + 1) % 100) == 0:
                 print "{0} songs read in {1:.1f} seconds" \
@@ -51,13 +53,30 @@ def get_song_tuples(root_path):
     print "Total: {0} songs read in {1:.1f} seconds".format(loop_nr + 1, end_time)
     return tuples
 
+
+def get_ddl():
+    return open('../../feature_databases/sql/ddl.sql', 'r').read()
+
+
+def create_db(dbpath):
+    conn = sqlite3.connect(dbpath)
+    c = conn.cursor()
+    c.execute(get_ddl())
+    conn.commit()
+    conn.close()
+
+
 def save_feature_sql_database(rootpath, dbpath):
+    if not os.path.isfile(dbpath):
+        create_db(dbpath)
+
     tuples = get_song_tuples(rootpath)
     con = sqlite3.connect(dbpath)
     cur = con.cursor()
     cur.executemany(INSERT_STMT, tuples)
     con.commit()
-
+    # wait for this transaction to complete before inserting
+    t.sleep(1)
 
 ## Input: n X 12 (segment by timbre component)
 ## Output: (1+order) x 12
