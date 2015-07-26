@@ -10,6 +10,7 @@ import csv
 import hdf5_getters
 import beat_aligned_feats
 import load_million_song
+from coefficients import get_poly_coefficients
 from collections import namedtuple
 from time import time
 import os
@@ -92,12 +93,6 @@ def get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_e
 	start_end_vector = [best_section_start,best_section_end]
 	feature_vector = np.append(start_end_vector,poly_feature)
 	return feature_vector
-
-def get_poly_coefficients(timbre_cols, timestamps, order):
-    assert timbre_cols.shape[0] == timestamps.shape[0]
-    def fit_series(ser_arr):
-        return np.polyfit(timestamps, ser_arr, order)
-    return np.column_stack(tuple(map(fit_series, timbre_cols.transpose())))
 
 def generate_feature_file(root_path,csvpath):
     # Main program

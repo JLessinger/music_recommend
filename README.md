@@ -4,12 +4,12 @@
 
 DESCRIPTION
 
-2 components: load_million_song and recommender
+2 components: load_songs and recommender
 
 
-  LOAD_MILLION_SONG:
+  LOAD_SONGS:
       
-        Reads the Million Song Dataset (or MillionSongSubset) into records containing ID, artist, album, song and pitches (chroma), and creates a database containing a feature of the topic probabilities of each type of chord for each song
+        Reads the Million Song Dataset (or MillionSongSubset) into records containing ID, artist, album, song and pitches (chroma), and creates a csv database containing a feature vector for each song (right now, just uses timbre). Can also upload an mp3 and add it to database.
         
         To run this test, you will have to download the Echonest Million Song Subset, available at:
           http://labrosa.ee.columbia.edu/millionsong/pages/getting-dataset#subset
@@ -18,7 +18,7 @@ DESCRIPTION
         Extract the tarball to a directory and set the root_path variable in the code
         to the data root directory.
         
-        Has been tested in Windows 7.
+        Has been tested in Windows 7, OS X
         
         loadmillionsong.py:
         Dependencies:
