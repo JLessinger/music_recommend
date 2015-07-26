@@ -6,7 +6,7 @@ import sys
 from util import get_config_key
 
 ORDER = get_config_key("POLY_ORDER")
-USG_MSG = "usage: python compute_timbre_feat.py output_csv_path"
+USG_MSG = "usage: python compute_timbre_feat.py analysis_root_path output_csv_path"
 
 def save_feature_vector(feature_vector,artist,title,id,f):
     # Save feature vector to a comma separated values file
