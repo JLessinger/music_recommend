@@ -1,3 +1,5 @@
+import numpy as np
+
 def get_chord_templates(template_type):
     # Create chord templates for major and minor chords
     #

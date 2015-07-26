@@ -1,7 +1,6 @@
 import json
 import os
 import numpy as np
-from os.path import basename
 
 def get_json_obj(anal_name):
     return json.loads(open('analysis/{0}'.format(anal_name), 'r').read())

@@ -1,14 +1,13 @@
 import subprocess
 import os
 import json
+import sys
 
 import urllib2
 
 API_KEY = "DAQJT7WW3IYXQTPOW"
 
 def upload_and_get_echonest_id(mp3name):
-    if "/" in mp3name:
-        raise Exception("please put mp3 in this dir")
     cmd = 'curl -F "api_key={0}" -F "filetype=mp3" -F "track=@{1}" "http://developer.echonest.com/api/v4/track/upload"'.format(API_KEY, mp3name)
     devnull = open(os.devnull, 'w')
     return get_id_from_echonest_json_string(subprocess.check_output(cmd, shell=True, stderr=devnull))
@@ -31,15 +30,20 @@ def get_analysis_from_profile(prof_json, title):
     return json.dumps(anal_json)
 
 def get_analysis(mp3name):
-    id = upload_and_get_echonest_id(mp3name)
-    profile = get_profile(id)
-    return (id, get_analysis_from_profile(profile, mp3name[0:-4]))
+    song_id = upload_and_get_echonest_id(mp3name)
+    profile = get_profile(song_id)
+    return song_id, get_analysis_from_profile(profile, mp3name[0:-4])
 
 def write_feature_file(mp3name):
     anal = get_analysis(mp3name)    
-    f = open("{0}.analysis".format(anal[0]), 'w')
+    f = open("../resources/{0}.analysis".format(anal[0]), 'w')
     f.write(anal[1])
+    f.close()
 
 
-write_feature_file("tpain-lights.mp3")
-print "done writing"    
+if __name__ == "__main__":
+    if len(sys.argv) == 2:
+        write_feature_file(sys.argv[1])
+        print "done writing"
+    else:
+        print "usage: python upload.py mp3_file"
