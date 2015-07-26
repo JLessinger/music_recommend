@@ -1,6 +1,10 @@
 # music_recommend
 5/23/15 spotify hackathon project
 
+TODO:
+
+-move csvs to SQL DB for performance
+-unit tests
 
 DESCRIPTION
 
