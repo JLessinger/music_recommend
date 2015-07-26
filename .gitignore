@@ -6,4 +6,5 @@
 *.mp3
 *.analysis
 *.h5
+*.csv
 .idea

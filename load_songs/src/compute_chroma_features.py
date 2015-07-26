@@ -1,16 +1,9 @@
 import numpy as np
 from scipy.signal import medfilt
 from scipy.spatial.distance import euclidean
-import pyechonest
-from pyechonest import song
-from pyechonest import track
 from pyechonest import config
 config.ECHO_NEST_API_KEY="DAQJT7WW3IYXQTPOW"
-import csv
-import hdf5_getters
-import beat_aligned_feats
-import load_million_song
-from collections import namedtuple
+import iterate_songs
 from time import time
 
 def get_chord_templates(template_type):
@@ -209,8 +202,7 @@ def save_feature_database(root_path,csvpath):
     
     filename_re = "^[A-Z]{7}[0-9,A-F]{11}\.h5$" # Example: TRBIJIA128F425F57D.h5
     time_start = time()
-    for loop_nr, song_rec in enumerate(
-                                       load_million_song.iterate_folder_songs_extracted(root_path, filename_re)):
+    for loop_nr, song_rec in enumerate(iterate_songs.iterate_folder_songs_extracted(root_path, filename_re)):
         
         btchromas = song_rec.btchromas
         feature_vector,key = create_feature_vector(btchromas,'majmin')

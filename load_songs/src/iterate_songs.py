@@ -1,11 +1,9 @@
-
 import os
-import h5py
-import hdf5_getters
-import beat_aligned_feats
 import re
 from time import time
 from collections import namedtuple
+
+from src.hdf5 import hdf5_getters
 import json_anal_getters
 
 song_record = namedtuple("song_record", "id  artist  title  timbre sections_start sections_conf segments_start song_end")
@@ -41,36 +39,37 @@ def iterate_folder_songs_extracted(root_path, filename_re):
         filename_re -- Regular expression to match HDF5 files
     """
     for filename in iterate_folder_songs(root_path, filename_re):
-        
         # Extract the important data from the full song record
         #metadata = song["metadata"]["songs"][0]
         #id = metadata[17]
         #artist = metadata[9]
         #album = metadata[14]
         #title = metadata[18]
-        
-	if filename[-2:] == 'h5':
-		song = hdf5_getters.open_h5_file_read(filename)
-		id = hdf5_getters.get_track_id(song)
-		artist = hdf5_getters.get_artist_name(song)
-		title = hdf5_getters.get_title(song)
-		timbre = hdf5_getters.get_segments_timbre(song)
-		sections_start = hdf5_getters.get_sections_start(song)
-		sections_conf = hdf5_getters.get_sections_confidence(song)
-		segments_start = hdf5_getters.get_segments_start(song)
-		song_end = hdf5_getters.get_duration(song)
-	elif filename[-8:] == 'analysis':
-		id = json_anal_getters.get_track_id(filename)
-		artist = json_anal_getters.get_artist_name(filename)
-		title = json_anal_getters.get_title(filename)
-		timbre = json_anal_getters.get_segments_timbre(filename)
-		sections_start = json_anal_getters.get_sections_start(filename)
-		sections_conf = json_anal_getters.get_sections_confidence(filename)
-		segments_start = json_anal_getters.get_segments_start(filename)
-		song_end = json_anal_getters.get_duration(filename)
 
-        #analysis = song["analysis"]
-        #pitches = analysis["segments_pitches"]
+        full_path = os.path.join(root_path, filename)
+        
+        if filename[-2:] == 'h5':
+            song = hdf5_getters.open_h5_file_read(full_path)
+            id = hdf5_getters.get_track_id(song)
+            artist = hdf5_getters.get_artist_name(song)
+            title = hdf5_getters.get_title(song)
+            timbre = hdf5_getters.get_segments_timbre(song)
+            sections_start = hdf5_getters.get_sections_start(song)
+            sections_conf = hdf5_getters.get_sections_confidence(song)
+            segments_start = hdf5_getters.get_segments_start(song)
+            song_end = hdf5_getters.get_duration(song)
+            song.close()
+        elif filename[-8:] == 'analysis':
+            id = json_anal_getters.get_track_id(full_path)
+            artist = json_anal_getters.get_artist_name(full_path)
+            title = json_anal_getters.get_title(full_path)
+            timbre = json_anal_getters.get_segments_timbre(full_path)
+            sections_start = json_anal_getters.get_sections_start(full_path)
+            sections_conf = json_anal_getters.get_sections_confidence(full_path)
+            segments_start = json_anal_getters.get_segments_start(full_path)
+            song_end = json_anal_getters.get_duration(full_path)
+        else:
+            raise Exception("unrecognized file type: {0}".format(filename))
 
         # Combine into a song record
         song_rec = song_record(id, artist, title, timbre, sections_start, sections_conf, segments_start, song_end)
@@ -102,8 +101,7 @@ if __name__ == '__main__':
     root_path = "MillionSongSubset/data"
     filename_re = "^[A-Z]{7}[0-9,A-F]{11}\.(h5|analysis)$" # Example: TRBIJIA128F425F57D.h5
     time_start = time()
-    for loop_nr, song_rec in enumerate(
-                iterate_folder_songs_extracted(root_path, filename_re)):
+    for loop_nr, song_rec in enumerate(iterate_folder_songs_extracted(root_path, filename_re)):
 
         if loop_nr == 0:
             # Debugging

@@ -23,7 +23,6 @@ import os
 import sys
 import numpy as np
 # code relies on pytables, see http://www.pytables.org
-import tables
 import hdf5_descriptors as DESC
 from hdf5_getters import *
 # musicbrainz related stuff

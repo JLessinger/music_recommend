@@ -2,8 +2,8 @@ import json
 import os
 import numpy as np
 
-def get_json_obj(anal_name):
-    return json.loads(open('analysis/{0}'.format(anal_name), 'r').read())
+def get_json_obj(anal_path):
+    return json.loads(open('{0}'.format(anal_path), 'r').read())
 
 def get_track_id(anal_name):
     return os.path.splitext(anal_name)[0]

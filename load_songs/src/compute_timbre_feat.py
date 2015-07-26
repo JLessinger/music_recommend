@@ -1,23 +1,13 @@
 import numpy as np
-from scipy.signal import medfilt
-from scipy.spatial.distance import euclidean
-import pyechonest
-from pyechonest import song
-from pyechonest import track
-from pyechonest import config
-config.ECHO_NEST_API_KEY="DAQJT7WW3IYXQTPOW"
-import csv
-import hdf5_getters
-import beat_aligned_feats
-import load_million_song
-from collections import namedtuple
+import iterate_songs
+
 from time import time
-import os
 import sys
 
 ORDER = 2
+USG_MSG = "usage: python compute_timbre_feat.py output_csv_path"
 
-def save_feature_vector(feature_vector,artist,title,id,csvpath):
+def save_feature_vector(feature_vector,artist,title,id,f):
     # Save feature vector to a comma separated values file
     #
     # Parameters:
@@ -29,9 +19,7 @@ def save_feature_vector(feature_vector,artist,title,id,csvpath):
     csvrow = str(artist) + ': ' + str(title) + ',' + str(id) + ',' + \
         str(','.join(map(str, feature_vector))) + '\n'
     #print csvrow
-    f = open(csvpath,'a')
     f.write(csvrow)
-    f.close()
 
 def save_feature_database(root_path,csvpath):
     # Create a database where each song is represented by a line in a CSV file
@@ -44,8 +32,10 @@ def save_feature_database(root_path,csvpath):
     # Returns: none
     
     filename_re = "^[A-Z]{7}[0-9,A-F]{11}\.(h5|analysis)$" # Example: TRBIJIA128F425F57D.h5
+    csvfile = open(csvpath,'w')
+
     time_start = time()
-    for loop_nr, song_rec in enumerate(load_million_song.iterate_folder_songs_extracted(root_path, filename_re)):
+    for loop_nr, song_rec in enumerate(iterate_songs.iterate_folder_songs_extracted(root_path, filename_re)):
         
         timbre = song_rec.timbre
         sections_start = song_rec.sections_start
@@ -59,17 +49,15 @@ def save_feature_database(root_path,csvpath):
             artist = song_rec.artist
             title = song_rec.title
             id = song_rec.id
-            #print id
-            #print artist,':',title
-            #print poly_feature
-            save_feature_vector(feature_vector,artist,title,id,csvpath)
+            save_feature_vector(feature_vector,artist,title,id,csvfile)
 
             if ((loop_nr + 1) % 100) == 0:
                 print "{0} songs read in {1:.1f} seconds" \
                     .format(loop_nr + 1, time() - time_start)
 
-        end_time = time() - time_start
-        print "Total: {0} songs read in {1:.1f} seconds".format(loop_nr + 1, end_time)
+    end_time = time() - time_start
+    print "Total: {0} songs read in {1:.1f} seconds".format(loop_nr + 1, end_time)
+    csvfile.close()
 
 ## Input: n X 12 (segment by timbre component)
 ## Output: order x 12
@@ -100,18 +88,11 @@ def get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_e
     feature_vector = np.append(start_end_vector,poly_feature)
     return feature_vector
 
-def generate_feature_file(root_path,csvpath):
-    # Main program
-    
-    #root_path = '/Users/victoriadennis/Documents/databases/MillionSongSubset/data'
-    #csvpath = '/Users/victoriadennis/Documents/github/music_recommend/recommender/test_data/songs.csv'
-    try:
-        os.remove(csvpath)
-        save_feature_database(root_path, csvpath)
-    except OSError:
-        raise Exception("couldn't remove csv")
 
 if __name__ == '__main__':
-    root_path = '../resources'
-    csv_path = sys.argv[1]
-    generate_feature_file(root_path, csv_path)
+    if len(sys.argv) != 2:
+        print USG_MSG
+    else:
+        root_path = '../analysis_files'
+        csv_path = sys.argv[1]
+        save_feature_database(root_path, csv_path)
