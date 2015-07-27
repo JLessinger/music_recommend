@@ -68,10 +68,11 @@ def create_db(dbpath):
     # wait for this transaction to complete before inserting
     t.sleep(1)
 
-def insert_batch(cur, con, fr, to, sec, batch):
-    print 'inserting', fr, 'to', to, "{0:.1f} sec".format(sec)
+def insert_batch(cur, con, fr, to, startTime, batch):
     cur.executemany(INSERT_STMT, batch)
     con.commit()
+    print 'inserted', fr, 'to', to, "{0:.1f} sec".format(time() - startTime)
+
 
 def save_feature_sql_database(rootpath, dbpath):
 
@@ -86,10 +87,10 @@ def save_feature_sql_database(rootpath, dbpath):
     for i, tup in enumerate(gen_song_tuples(rootpath)):
         batch.append(tup)
         if (i+1) % INSERT_BATCH_SIZE == 0:
-            insert_batch(cur, con, i - INSERT_BATCH_SIZE + 1, i, time() - start_time, batch)
+            insert_batch(cur, con, i - INSERT_BATCH_SIZE + 1, i, start_time, batch)
             batch = []
     if len(batch) > 0:
-        insert_batch(cur, con, i - len(batch) + 1, i, time() - start_time, batch)
+        insert_batch(cur, con, i - len(batch) + 1, i, start_time, batch)
     con.close()
 
     print "Total: {0} songs read in {1:.1f} seconds".format(i+1, time() - start_time)
