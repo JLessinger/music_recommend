@@ -75,8 +75,8 @@ def create_db(dbpath):
     # wait for this transaction to complete before inserting
     t.sleep(1)
 
-def insert_batch(cur, con, i, batch):
-    print 'inserting', i, 'to', i+INSERT_BATCH_SIZE - 1
+def insert_batch(cur, con, fr, to, batch):
+    print 'inserting', fr, 'to', to
     cur.executemany(INSERT_STMT, batch)
     con.commit()
 
@@ -92,8 +92,11 @@ def save_feature_sql_database(rootpath, dbpath):
     for i, tup in enumerate(gen_song_tuples(rootpath)):
         batch.append(tup)
         if (i+1) % INSERT_BATCH_SIZE == 0:
-            insert_batch(cur, con, i, batch)
+            insert_batch(cur, con, i, i + INSERT_BATCH_SIZE - 1, batch)
             batch = []
+    if len(batch) > 0:
+        insert_batch(cur, con, i, len(batch) - 1, batch)
+    con.close()
 
 ## Input: n X 12 (segment by timbre component)
 ## Output: (1+order) x 12
