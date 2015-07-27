@@ -9,6 +9,7 @@ import sys
 from util import get_config_key
 
 ORDER = get_config_key("POLY_ORDER")
+INSERT_BATCH_SIZE = get_config_key("INSERT_BATCH_SIZE")
 INSERT_STMT = 'INSERT OR REPLACE INTO SONGS (title, artist, id, startTime, endTime, features) VALUES  (?, ?, ?, ?, ?, ?);'
 
 USG_MSG = "usage: python compute_timbre_feat.py analysis_root_path output_db_path"
@@ -25,8 +26,7 @@ def unicode_if_str(obj, encoding):
         return obj
 
 
-def get_song_tuples(root_path):
-    tuples = []
+def gen_song_tuples(root_path):
     # Parameters
     # root_path: string -- path to MillionSongSubset's data folder
     #
@@ -50,16 +50,16 @@ def get_song_tuples(root_path):
             title = song_rec.title
             id = song_rec.id
             start, end = get_start_end(sections_start, sections_conf, song_end)
-            tuples.append((unicode_if_str(title, 'utf-8'), unicode_if_str(artist, 'utf-8'),
-                           unicode_if_str(id, 'utf-8'), start, end, unicode_if_str(features_as_str(feature_vector), 'utf-8')))
+            tup = (unicode_if_str(title, 'utf-8'), unicode_if_str(artist, 'utf-8'),
+                           unicode_if_str(id, 'utf-8'), start, end, unicode_if_str(features_as_str(feature_vector), 'utf-8'))
 
             if ((loop_nr + 1) % 100) == 0:
                 print "{0} songs read in {1:.1f} seconds" \
                     .format(loop_nr + 1, time() - time_start)
+            yield tup
 
     end_time = time() - time_start
     print "Total: {0} songs read in {1:.1f} seconds".format(loop_nr + 1, end_time)
-    return tuples
 
 
 def get_ddl():
@@ -72,19 +72,28 @@ def create_db(dbpath):
     c.execute(get_ddl())
     conn.commit()
     conn.close()
+    # wait for this transaction to complete before inserting
+    t.sleep(1)
 
+def insert_batch(cur, con, i, batch):
+    print 'inserting', i, 'to', i+INSERT_BATCH_SIZE - 1
+    cur.executemany(INSERT_STMT, batch)
+    con.commit()
 
 def save_feature_sql_database(rootpath, dbpath):
+
     if not os.path.isfile(dbpath):
         create_db(dbpath)
 
-    tuples = get_song_tuples(rootpath)
     con = sqlite3.connect(dbpath)
     cur = con.cursor()
-    cur.executemany(INSERT_STMT, tuples)
-    con.commit()
-    # wait for this transaction to complete before inserting
-    t.sleep(1)
+
+    batch = []
+    for i, tup in enumerate(gen_song_tuples(rootpath)):
+        batch.append(tup)
+        if (i+1) % INSERT_BATCH_SIZE == 0:
+            insert_batch(cur, con, i, batch)
+            batch = []
 
 ## Input: n X 12 (segment by timbre component)
 ## Output: (1+order) x 12

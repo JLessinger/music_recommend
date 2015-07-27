@@ -10,7 +10,7 @@ song_record = namedtuple("song_record", "id  artist  title  timbre sections_star
 
 def iterate_folder_songs(root_path, filename_re):
     """Iterate over a collection of HDF5 database files, each one containing
-    structured data, presumably a song. 
+    structured data, presumably a song.
     Yields the full HDF5 record from the file.
     Arguments:
         root_path -- File path to the root of the file collection.
@@ -41,7 +41,6 @@ def iterate_folder_songs_extracted(root_path, filename_re):
     """
     for filepath in iterate_folder_songs(root_path, filename_re):
         # Extract the important data from the full song record
-
         filename = os.path.basename(filepath)
         ext = os.path.splitext(filename)[1]
 
