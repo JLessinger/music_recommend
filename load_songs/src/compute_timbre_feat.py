@@ -34,7 +34,6 @@ def gen_song_tuples(root_path):
     
     filename_re = "^[A-Z]{7}[0-9,A-F]{11}\.(h5|analysis)$" # Example: TRBIJIA128F425F57D.h5
 
-    time_start = time()
     for loop_nr, song_rec in enumerate(iterate_songs.iterate_folder_songs_extracted(root_path, filename_re)):
         
         timbre = song_rec.timbre
@@ -53,13 +52,7 @@ def gen_song_tuples(root_path):
             tup = (unicode_if_str(title, 'utf-8'), unicode_if_str(artist, 'utf-8'),
                            unicode_if_str(id, 'utf-8'), start, end, unicode_if_str(features_as_str(feature_vector), 'utf-8'))
 
-            if ((loop_nr + 1) % 100) == 0:
-                print "{0} songs read in {1:.1f} seconds" \
-                    .format(loop_nr + 1, time() - time_start)
             yield tup
-
-    end_time = time() - time_start
-    print "Total: {0} songs read in {1:.1f} seconds".format(loop_nr + 1, end_time)
 
 
 def get_ddl():
@@ -75,8 +68,8 @@ def create_db(dbpath):
     # wait for this transaction to complete before inserting
     t.sleep(1)
 
-def insert_batch(cur, con, fr, to, batch):
-    print 'inserting', fr, 'to', to
+def insert_batch(cur, con, fr, to, sec, batch):
+    print 'inserting', fr, 'to', to, "{0:.1f} sec".format(sec)
     cur.executemany(INSERT_STMT, batch)
     con.commit()
 
@@ -89,14 +82,18 @@ def save_feature_sql_database(rootpath, dbpath):
     cur = con.cursor()
 
     batch = []
+    start_time = time()
     for i, tup in enumerate(gen_song_tuples(rootpath)):
         batch.append(tup)
         if (i+1) % INSERT_BATCH_SIZE == 0:
-            insert_batch(cur, con, i, i + INSERT_BATCH_SIZE - 1, batch)
+            insert_batch(cur, con, i, i + INSERT_BATCH_SIZE - 1, time() - start_time, batch)
             batch = []
     if len(batch) > 0:
-        insert_batch(cur, con, i, len(batch) - 1, batch)
+        insert_batch(cur, con, i, len(batch) - 1, time() - start_time, batch)
     con.close()
+
+    print "Total: {0} songs read in {1:.1f} seconds".format(i+1, time() - start_time)
+
 
 ## Input: n X 12 (segment by timbre component)
 ## Output: (1+order) x 12
