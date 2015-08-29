@@ -41,18 +41,18 @@ def gen_song_tuples(root_path):
         sections_conf = song_rec.sections_conf
         segments_start = song_rec.segments_start
         song_end = song_rec.song_end
-        if len(sections_conf) > 0:
-            feature_vector = get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_end)
-            if feature_vector is None:
-                continue
-            artist = song_rec.artist
-            title = song_rec.title
-            id = song_rec.id
-            start, end = get_start_end(sections_start, sections_conf, song_end)
-            tup = (unicode_if_str(title, 'utf-8'), unicode_if_str(artist, 'utf-8'),
-                           unicode_if_str(id, 'utf-8'), start, end, unicode_if_str(features_as_str(feature_vector), 'utf-8'))
+        
+        feature_vector = get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_end)
+        if feature_vector is None:
+          continue
+        artist = song_rec.artist
+        title = song_rec.title
+        id = song_rec.id
+        start, end = get_start_end(sections_start, sections_conf, song_end)
+        tup = (unicode_if_str(title, 'utf-8'), unicode_if_str(artist, 'utf-8'),
+           unicode_if_str(id, 'utf-8'), start, end, unicode_if_str(features_as_str(feature_vector), 'utf-8'))
 
-            yield tup
+yield tup
 
 
 def get_ddl():
