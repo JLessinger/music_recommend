@@ -105,7 +105,10 @@ def get_poly_coefficients(timbre_cols, timestamps, order):
     return np.column_stack(tuple(map(fit_series, timbre_cols.transpose())))
 
 def get_start_end(sections_start, sections_conf, song_end):
-    best_section = 1 + np.argmax(sections_conf[1:])
+    if len(sections_conf) == 1:
+        best_section = 0
+    else	
+        best_section = 1 + np.argmax(sections_conf[1:])
     best_section_start = sections_start[best_section]
     if len(sections_start) > best_section + 1:
         best_section_end = sections_start[best_section + 1]
