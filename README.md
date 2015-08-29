@@ -30,7 +30,7 @@ IMPLEMENTATION
 
   LOAD_SONGS:
       
-        Reads the Million Song Dataset (or MillionSongSubset) into records containing ID, artist, album, song and pitches (chroma), and creates a csv database containing a feature vector for each song (right now, just uses timbre). Can also upload an mp3 and add it to database.
+        Reads the Million Song Dataset (or MillionSongSubset) into records containing ID, artist, album, song and pitches (chroma), and creates a database containing a feature vector for each song (right now, just uses timbre). Can also upload an mp3 and add it to database.
         
         To run this test, you will have to download the Echonest Million Song Subset, available at:
           http://labrosa.ee.columbia.edu/millionsong/pages/getting-dataset#subset
@@ -63,7 +63,7 @@ IMPLEMENTATION
         
         How to use:
         From your Python application, import the compute_features.py module. 
-        Create the .csv database by calling compute_features.save_feature_database(root_path,csvpath), where root_path is the location of the “data” subfolder within the Million Song Subset and csvpath is where you want to create the feature database.  
+        Create the database by calling compute_features.save_feature_database(root_path, db_path), where root_path is the location of the “data” subfolder within the Million Song Subset and db_path is where you want to create the feature database.  
       
   
   RECOMMENDER:
@@ -89,11 +89,8 @@ IMPLEMENTATION
         This will load the songs into memory and then enter an infinite loop. User should enter song ID and press enter. 
         Program will output a few of the most similar songs.
         
-        Song file must be in CSV format (no header row) with the following fields in this order:
-        
-        song name | song id | coordinate 1 | coordinate 2 | ...
-        with any fixed number of coordinates.
-  
+        Song file is a sqlite database file. See feature_databases/sql/ddl.sql for schema.
+
 
 
 BUGS
