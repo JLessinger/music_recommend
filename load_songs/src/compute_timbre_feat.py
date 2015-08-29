@@ -126,7 +126,7 @@ def get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_e
 
     timbre_feature = timbre[seg_indices,:]
     timestamps = segments_start[seg_indices]
-    if len(seg_indices) <= ORDER:
+    if len(seg_indices) < ORDER:
         return None # i think silently fail is ok
     poly_feature = get_poly_coefficients(timbre_feature,timestamps,ORDER).reshape(-1)
     return poly_feature
