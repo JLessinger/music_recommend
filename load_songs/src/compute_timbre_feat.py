@@ -41,18 +41,24 @@ def gen_song_tuples(root_path):
         sections_conf = song_rec.sections_conf
         segments_start = song_rec.segments_start
         song_end = song_rec.song_end
-        
-        feature_vector = get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_end)
-        if feature_vector is None:
-          continue
+
         artist = song_rec.artist
         title = song_rec.title
         id = song_rec.id
-        start, end = get_start_end(sections_start, sections_conf, song_end)
-        tup = (unicode_if_str(title, 'utf-8'), unicode_if_str(artist, 'utf-8'),
-           unicode_if_str(id, 'utf-8'), start, end, unicode_if_str(features_as_str(feature_vector), 'utf-8'))
 
-yield tup
+        try:
+            feature_vector = get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_end)
+            if feature_vector is None:
+                print 'skipping'
+                continue
+
+            start, end = get_start_end(sections_start, sections_conf, song_end)
+            tup = (unicode_if_str(title, 'utf-8'), unicode_if_str(artist, 'utf-8'),
+            unicode_if_str(id, 'utf-8'), start, end, unicode_if_str(features_as_str(feature_vector), 'utf-8'))
+
+            yield tup
+        except Exception as e:
+            sys.stderr.write('exception for {0}, {1}: {2}'.format(title, id, str(e)))
 
 
 def get_ddl():
@@ -107,12 +113,12 @@ def get_poly_coefficients(timbre_cols, timestamps, order):
 def get_start_end(sections_start, sections_conf, song_end):
     if len(sections_conf) < 2:
         best_section_start = 0
-	best_section_end = song_end
+        best_section_end = song_end
     else:	
         best_section = 1 + np.argmax(sections_conf[1:])
         best_section_start = sections_start[best_section]
-	if len(sections_start) > best_section + 1:
-	    best_section_end = sections_start[best_section + 1]
+        if len(sections_start) > best_section + 1:
+            best_section_end = sections_start[best_section + 1]
         else:
             best_section_end = song_end
     return (best_section_start, best_section_end)
@@ -121,13 +127,15 @@ def get_feature_vector(timbre,sections_start,sections_conf,segments_start,song_e
     best_section_start, best_section_end = get_start_end(sections_start, sections_conf, song_end)
     seg_indices = []
     for i in range(len(segments_start)):
-        if best_section_start < segments_start[i] < best_section_end:
+        if best_section_start <= segments_start[i] < best_section_end:
             seg_indices.append(i)
 
     timbre_feature = timbre[seg_indices,:]
     timestamps = segments_start[seg_indices]
+    if len(seg_indices) == 0:
+        raise Exception('no segments!')
     if len(seg_indices) < ORDER:
-        return None # i think silently fail is ok
+        raise Exception('not enough segments for polynomial regression')
     poly_feature = get_poly_coefficients(timbre_feature,timestamps,ORDER).reshape(-1)
     return poly_feature
 
