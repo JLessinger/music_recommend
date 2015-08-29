@@ -3,10 +3,27 @@
 
 TODO:
 
--move csvs to SQL DB for performance
--unit tests
+* move away from sqlite - too slow
+* sanity checks [see brian mcfee's paper], unit tests
 
 DESCRIPTION
+
+Timbre-based recommendation engine. You type in a song ID, you get a list of songs with similar timbre. 
+
+ALGORITHM
+
+* Song represented as point in Euclidean space. Recommendation = n nearest neighbors
+* Point computed from song features:
+       * Find "chorus" section (Highest "confidence")
+		* Could use other confidence measures
+       * Get segments from section
+       * Get timbre vector contours from section
+       * Get the 12 m-th order best fit polynomials
+       Construct vector from 12*m coefficients
+
+
+
+IMPLEMENTATION
 
 2 components: load_songs and recommender
 
@@ -77,23 +94,9 @@ DESCRIPTION
         song name | song id | coordinate 1 | coordinate 2 | ...
         with any fixed number of coordinates.
   
-  
-
-HOW TO USE
 
 
 BUGS
 
 
 
-ALGORITHM
-
--Song represented as point in Euclidean space. Recommend = n nearest neighbors
--Point computed from song features:
-       -Find "chorus" section
-       	     -Highest "confidence" section
-	     	      -Could use other confidence measures
-       -Get segments from section
-       -Get timbre vector contours from section
-       -Get the 12 m-th order best fit polynomials
-       -Vector has these 12*m components
