@@ -107,7 +107,7 @@ def get_poly_coefficients(timbre_cols, timestamps, order):
 def get_start_end(sections_start, sections_conf, song_end):
     if len(sections_conf) == 1:
         best_section = 0
-    else	
+    else:	
         best_section = 1 + np.argmax(sections_conf[1:])
     best_section_start = sections_start[best_section]
     if len(sections_start) > best_section + 1:
